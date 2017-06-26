@@ -15,7 +15,7 @@ namespace BetReader.Service.Core.Jobs
     public class BbFeedReadJob : IJob
     {
         private FeedScraper processor;
-        private CouponRepository couponRepository;
+        private IDataProvider apiWrapper;
         private UnityContainer container;
 
         public void Execute(IJobExecutionContext context)
@@ -25,18 +25,15 @@ namespace BetReader.Service.Core.Jobs
                 container = (UnityContainer)context.MergedJobDataMap["unityContainer"];
 
                 processor = new FeedScraper(new ChromeDriver(GlobalConstants.ChromeDriverPath));
-                couponRepository = container.Resolve<CouponRepository>();
+                apiWrapper = container.Resolve<IDataProvider>();
 
-                context.RescheduleJob(65, 80);
+                context.RescheduleJob(40, 55);
 
                 using (processor)
                 {
-                    List<Coupon> coupons = processor.GetValuableCoupons().ToList();
+                    List<Coupon> coupons = processor.GetValuableCoupons(GlobalConstants.Url).ToList();
 
-                    foreach (Coupon coupon in coupons)
-                    {
-                        couponRepository.AddAsUnique(coupon);
-                    }
+                    apiWrapper.AddCouponsToPlay(coupons);
                 }
             }
             catch (JobExecutionException e)

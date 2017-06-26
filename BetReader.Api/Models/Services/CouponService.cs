@@ -23,23 +23,6 @@ namespace BetReader.Api.Models.Services
                 c.IsResolved == false).ToList();
         }
 
-        public void AddAsUnique(Coupon coupon)
-        {
-            var couponsToPlay = couponRepository.GetAll().
-                Where(c => c.IsResolved == false);
-
-            foreach (Coupon toPlay in couponsToPlay)
-            {
-                if (toPlay.Exuals(coupon))
-                {
-                    return;
-                }
-            }
-
-            couponRepository.Create(coupon);
-            couponRepository.SaveChanges();
-        }
-
         public void SetCouponsInProgress(IEnumerable<int> ids)
         {
             foreach (var couponId in ids)
@@ -76,14 +59,47 @@ namespace BetReader.Api.Models.Services
                 c.IsPlayed).ToList();
         }
 
-        public bool AddBulk(List<Coupon> coupons)
+        public bool AddCoupons(IEnumerable<Coupon> coupons)
         {
-            throw new System.NotImplementedException();
+            try
+            {
+                foreach (var singleCoupon in coupons)
+                {
+                    AddAsUnique(singleCoupon);
+                }
+                couponRepository.SaveChanges();
+                return true;
+            }
+            catch (Exception e)
+            {
+                //log e
+                return false;
+            }
+
         }
 
-        public bool UpdateBulk(List<Coupon> coupons)
+        public bool UpdateCoupons(List<Coupon> coupons)
         {
-            throw new System.NotImplementedException();
+            foreach (var singleCoupon in coupons)
+            {
+                couponRepository.Update(singleCoupon);
+            }
+            return true;
+        }
+
+        private void AddAsUnique(Coupon coupon)
+        {
+            var couponsToPlay = couponRepository.GetAll().
+                Where(c => c.IsResolved == false);
+
+            foreach (Coupon toPlay in couponsToPlay)
+            {
+                if (toPlay.Equals(coupon))
+                {
+                    return;
+                }
+            }
+            couponRepository.Add(coupon);
         }
     }
 }

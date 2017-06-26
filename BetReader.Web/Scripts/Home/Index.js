@@ -2,149 +2,245 @@
     init();
 });
 
+
+ApiUrl = 'http://betreaderapi20170606113457.azurewebsites.net/';
+
 var init = function () {
     initTables();
-    $('#dismissCoupon').click(dismissCoupons);
-    $('#toPlayBtn').click(refreshToPlayTable);
-    $('#inProgressBtn').click(refreshInPlayTable);
-    $('#summaryBtn').click(refreshSummaryTable);
-    $('#playCouponBtn').click(setAsPlayed);
+}
+
+var refreshToPlayTable = function (authorization) {
+    $('#dismissCoupon').unbind();
+    $('#playCouponBtn').unbind();
+    $('#toPlayContainer tbody').unbind();
+    $('#toPlayContainer').DataTable().destroy();
+    initToPlayTable(authorization);
+}
+
+var refreshInPlayTable = function (authorization) {
+    $('#inPlayContainer tbody').unbind();
+    $('#inPlayContainer').DataTable().destroy();
+    initInPlayTable(authorization);
+}
+
+var refreshSummaryTable = function (authorization) {
+    $('#summaryContainer tbody').unbind();
+    $('#summaryContainer').DataTable().destroy();
+    initSummaryTable(authorization);
+}
+
+var drawToPlayTable = function (data) {
+    $('#toPlayContainer').DataTable({
+        data: data,
+        paging: true,
+        sAjaxDataProp: "",
+        oLanguage: {
+            sInfo: "_START_ to _END_ from _TOTAL_ coupons.",
+            oPaginate: {
+                sNext: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Next</button>",
+                sPrevious: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Previous</button>"
+            }
+        },
+        sDom: 'rtip',
+        pagingType: 'simple',
+        aoColumns: [
+        {
+            mData: 'AddedTime',
+            mRender: function (data, type, full) {
+                return formatDate(data);
+            }
+        },
+        {
+            mData: 'Odds',
+            mRender: function (data, type, full) {
+                return formatOdds(data);
+            }
+        },
+        {
+            sWidth: '25%',
+            mData: 'AuthorsPicksCount'
+        },
+        {
+            mData: 'AuthorsYield'
+        }]
+    });
     $('#toPlayContainer tbody').on('click', 'tr', selectToPlay);
+}
+
+var drawInPlayTable = function (data) {
+    $('#inPlayContainer').DataTable({
+        data: data,
+        paging: true,
+        sAjaxDataProp: "",
+        oLanguage: {
+            sInfo: "_START_ to _END_ from _TOTAL_ coupons.",
+            oPaginate: {
+                sNext: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Next</button>",
+                sPrevious: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Previous</button>"
+            }
+        },
+        sDom: 'rtip',
+        pagingType: 'simple',
+        aoColumns: [
+        {
+            mData: 'AddedTime',
+            mRender: function (data, type, full) {
+                return formatDate(data);
+            }
+        },
+        {
+            mData: 'Odds',
+            mRender: function (data, type, full) {
+                return formatOdds(data);
+            }
+        },
+        {
+            sWidth: '25%',
+            mData: 'AuthorsPicksCount'
+        },
+        {
+            mData: 'AuthorsYield'
+        }]
+    });
     $('#inPlayContainer tbody').on('click', 'tr', selectInPlay);
-    $(window).scroll(setDetailsPosition);
 }
 
-var refreshToPlayTable = function () {
-    $('#toPlayContainer').DataTable().ajax.reload();
-}
-
-var refreshInPlayTable = function () {
-    $('#inPlayContainer').DataTable().ajax.reload();
-}
-
-var refreshSummaryTable = function () {
-    $('#summaryContainer').DataTable().ajax.reload();
+var drawSummaryTable = function (data) {
+    $('#summaryContainer').DataTable({
+        data: data,
+        paging: true,
+        sAjaxDataProp: "",
+        oLanguage: {
+            sInfo: "_START_ to _END_ from _TOTAL_ coupons.",
+            oPaginate: {
+                sNext: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Next</button>",
+                sPrevious: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Previous</button>"
+            }
+        },
+        sDom: 'rtip',
+        pagingType: 'simple',
+        aoColumns: [
+        {
+            mData: 'AddedTime',
+            mRender: function (data, type, full) {
+                return formatDate(data);
+            }
+        },
+        {
+            mData: 'Odds',
+            mRender: function (data, type, full) {
+                return formatOdds(data);
+            }
+        },
+        {
+            sWidth: '25%',
+            mData: 'AuthorsPicksCount'
+        },
+        {
+            mData: 'AuthorsYield'
+        }]
+    });
+    $('#summaryContainer tbody').on('click', 'tr', selectInPlay);
 }
 
 var initTables = function () {
-    $('#toPlayContainer').DataTable({
-        ajax: "http://localhost:51740/api/Bet/GetCouponsToPlay",
-        paging: true,
-        sAjaxDataProp: "",
-        oLanguage: {
-            sInfo: "_START_ to _END_ from _TOTAL_ coupons.",
-            oPaginate: {
-                sNext: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Next</button>",
-                sPrevious: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Previous</button>"
-            }
-        },
-        sDom: 'rtip',
-        pagingType: 'simple',
-        aoColumns: [
-        {
-            mData: 'AddedTime',
-            mRender: function (data, type, full) {
-                return formatDate(data);
-            }
-        },
-        {
-            mData: 'Odds',
-            mRender: function (data, type, full) {
-                return formatOdds(data);
-            }
-        },
-        {
-            sWidth: '25%',
-            mData: 'AuthorsPicksCount'
-        },
-        {
-            mData: 'AuthorsYield'
-        }]
-    });
+    var authorization = getCookie('token');
+    initToPlayTable(authorization);
+    initInPlayTable(authorization);
+    initSummaryTable(authorization);
+    initRefreshes(authorization);
 
-
-
-    $('#inPlayContainer').DataTable({
-        ajax: "http://localhost:51740/api/Bet/GetCouponsInPlay",
-        paging: true,
-        sAjaxDataProp: "",
-        oLanguage: {
-            sInfo: "_START_ to _END_ from _TOTAL_ coupons.",
-            oPaginate: {
-                sNext: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Next</button>",
-                sPrevious: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Previous</button>"
-            }
-        },
-        sDom: 'rtip',
-        pagingType: 'simple',
-        aoColumns: [
-        {
-            mData: 'AddedTime',
-            mRender: function (data, type, full) {
-                return formatDate(data);
-            }
-        },
-        {
-            mData: 'Odds'
-        },
-        {
-            sWidth: '25%',
-            mData: 'AuthorsPicksCount'
-        },
-        {
-            mData: 'AuthorsYield'
-        }]
-    });
-
-
-    $('#summaryContainer').DataTable({
-        ajax: "http://localhost:51740/api/Bet/GetCouponsToPlay", //TODO: write method to get resolved coupons
-        paging: true,
-        sAjaxDataProp: "",
-        oLanguage: {
-            sInfo: "_START_ to _END_ from _TOTAL_ coupons.",
-            oPaginate: {
-                sNext: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Next</button>",
-                sPrevious: "<button type='button' style='width: 100%; height:100%;' class='btn btn-info'>Previous</button>"
-            }
-        },
-        sDom: 'rtip',
-        pagingType: 'simple',
-        fnRowCallback: function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
-            if ( aData.IsWon )
-            {
-                $('td', nRow).css('background-color', '#7ccc7c');
-            }
-            else
-            {
-                $('td', nRow).css('background-color', '#e87471');
-            }
-        },
-        aoColumns: [
-        {
-            mData: 'AddedTime',
-            mRender: function (data, type, full) {
-                return formatDate(data);
-            }
-        },
-        {
-            mData: 'Odds',
-            mRender: function (data, type, full) {
-                return formatOdds(data);
-            }
-        },
-        {
-            sWidth: '25%',
-            mData: 'AuthorsPicksCount'
-        },
-        {
-            mData: 'AuthorsYield'
-        }]
-    });
-
+    setInterval(function () {
+        refreshToPlayTable(authorization);
+    }, 60000);
+    setInterval(function () {
+        refreshInPlayTable(authorization);
+    }, 180000);
+    setInterval(function () {
+        refreshSummaryTable(authorization);
+    }, 180000);
 }
 
-var setDetailsPosition = function() {
+var initRefreshes = function (authorization) {
+    $('#toPlayBtn').click(function () {
+        refreshToPlayTable(authorization);
+    });
+    $('#inProgressBtn').click(function () {
+        refreshInPlayTable(authorization);
+    });
+    $('#summaryBtn').click(function () {
+        refreshSummaryTable(authorization);
+    });
+}
+
+var logOut = function () {
+    window.location = "javascript:document.getElementById('logoutForm').submit()";
+}
+
+var initToPlayTable = function (authorization) {
+    $.ajax({
+        type: 'GET',
+        url: ApiUrl + 'api/Bet/GetCouponsToPlay',
+        headers: {
+            authorization: authorization
+        },
+        contentType: 'application/json; charset=utf-8',
+        success: function (response) {
+            drawToPlayTable(response);
+        },
+        error: function (xhr, status, error) {
+            logOut();
+        }
+    });
+    initDetailsView(authorization);
+}
+
+var initInPlayTable = function (authorization) {
+    $.ajax({
+        type: 'GET',
+        url: ApiUrl + 'api/Bet/GetCouponsInPlay',
+        headers: {
+            authorization: authorization
+        },
+        contentType: 'application/json; charset=utf-8',
+        success: function (response) {
+            drawInPlayTable(response);
+        },
+        error: function (xhr, status, error) {
+            logOut();
+        }
+    });
+}
+
+var initSummaryTable = function (authorization) {
+    $.ajax({
+        type: 'GET',
+        url: ApiUrl + 'api/Bet/GetResolvedCoupons',
+        headers: {
+            authorization: authorization
+        },
+        contentType: 'application/json; charset=utf-8',
+        success: function (response) {
+            drawSummaryTable(response);
+        },
+        error: function (xhr, status, error) {
+            logOut();
+        }
+    });
+}
+
+var initDetailsView = function (authorization) {
+    $('#dismissCoupon').click(function() {
+        dismissCoupons(authorization);
+    });
+    $('#playCouponBtn').click(function() {
+        setAsPlayed(authorization);
+    });
+
+    $(window).scroll(setDetailsPosition);
+}
+
+var setDetailsPosition = function () {
     $('#couponDetailsContainer').css('padding-top', self.pageYOffset);
 }
 
@@ -155,20 +251,20 @@ var selectToPlay = function () {
     if (deselect) {
         $(this).removeClass('selected');
         hideDetailsTable();
-        hideActionButtons();
+        hideDetailsActionButtons();
     }
-    //when selecting another row (normal click)
+    //normal click, when selecting another row
     if (event.ctrlKey === false && deselect === false) {
         $('.selected').removeClass('selected');
         $(this).addClass('selected');
         showDetailedCoupon($(this), tableId);
-        showActionButtons();
+        showDetailsActionButtons();
     }
-    //when selecting new rows with control
+    //multiselect, when selecting new rows with control
     if (event.ctrlKey && deselect === false) {
         $(this).addClass('selected');
         hideDetailsTable();
-        hideActionButtons();
+        hideDetailsActionButtons();
     }
 }
 
@@ -180,21 +276,21 @@ var selectInPlay = function () {
         $(this).removeClass('selected');
         hideDetailsTable();
     }
-    //when selecting another row (normal click)
+    //normal click, when selecting another row
     if (event.ctrlKey === false && deselect === false) {
         $('.selected').removeClass('selected');
         $(this).addClass('selected');
         showDetailedCoupon($(this), tableId);
-        hideActionButtons();
+        hideDetailsActionButtons();
     }
-    //when selecting new rows with control
+    //multiselect, when selecting new rows with control
     if (event.ctrlKey && deselect === false) {
         $(this).addClass('selected');
         hideDetailsTable();
     }
 }
 
-var dismissCoupons = function () {
+var dismissCoupons = function (authorization) {
     var couponIds = [];
     var couponsToRemove = $('#toPlayContainer').DataTable().rows('.selected');
     var couponsToRemoveData = couponsToRemove.data();
@@ -204,8 +300,11 @@ var dismissCoupons = function () {
 
     $.ajax({
         type: 'POST',
-        url: 'http://localhost:51740/api/Bet/DismissCoupons',
+        url: ApiUrl + 'api/Bet/DismissCoupons',
         data: JSON.stringify(couponIds),
+        headers: {
+            authorization: authorization
+        },
         contentType: 'application/json; charset=utf-8',
         success: function () {
             couponsToRemove.remove().draw(false);
@@ -215,26 +314,6 @@ var dismissCoupons = function () {
 
         }
     });
-}
-
-var formatDate = function (date) {
-    if (date != null) {
-        date = date.substring(0, 16).replace("T", " ");
-        var year = date.substring(0, 4);
-        var month = date.substring(5, 7);
-        var day = date.substring(8, 10);
-        var hour = date.substring(11, 16);
-        var formattedDate = hour.concat(" " + day).concat("-" + month).concat("-" + year);
-        return formattedDate;
-    }
-    return null;
-}
-
-var formatOdds = function (odds) {
-    if (odds != null) {
-        return odds;
-    }
-    return null;
 }
 
 var hideDetailsTable = function () {
@@ -271,12 +350,12 @@ var showDetailedCoupon = function (selectedRow, tableId) {
     togglePicks();
 }
 
-var showActionButtons = function () {
-    $('#actionButtons').css("display", "block");
+var showDetailsActionButtons = function () {
+    $('#detailsActionButtons').css("display", "block");
 }
 
-var hideActionButtons = function () {
-    $('#actionButtons').css("display", "none");
+var hideDetailsActionButtons = function () {
+    $('#detailsActionButtons').css("display", "none");
 }
 
 var togglePicks = function() {
@@ -291,7 +370,13 @@ var togglePicks = function() {
     });
 }
 
-var setAsPlayed = function () {
+var getCookie = function (name) {
+    var value = "; " + document.cookie;
+    var parts = value.split("; " + name + "=");
+    if (parts.length == 2) return parts.pop().split(";").shift();
+}
+
+var setAsPlayed = function (authorization) {
     var couponIds = [];
     var playedCoupons = $('#toPlayContainer').DataTable().rows('.selected');
     var playedCouponsData = playedCoupons.data();
@@ -302,19 +387,41 @@ var setAsPlayed = function () {
     if (couponIds.length != 0) {
         $.ajax({
             type: 'POST',
-            url: 'http://localhost:51740/api/Bet/SetCouponsInProgress',
+            url: ApiUrl + 'api/Bet/SetCouponsInProgress',
             data: JSON.stringify(couponIds),
+            headers: {
+                authorization: authorization
+            },
             contentType: 'application/json; charset=utf-8',
             success: function (response) {
-                console.log(response.status);
                 playedCoupons.remove().draw();
                 var rows = $('#inPlayContainer').DataTable().rows.add(playedCouponsData).draw();
                 rows.nodes().to$().addClass('selected');
-                hideActionButtons();
+                hideDetailsActionButtons();
             },
             error: function (xhr, status, error) {
 
             }
         });
     }
+}
+
+var formatDate = function (date) {
+    if (date != null) {
+        date = date.substring(0, 16).replace("T", " ");
+        var year = date.substring(0, 4);
+        var month = date.substring(5, 7);
+        var day = date.substring(8, 10);
+        var hour = date.substring(11, 16);
+        var formattedDate = hour.concat(" " + day).concat("-" + month).concat("-" + year);
+        return formattedDate;
+    }
+    return null;
+}
+
+var formatOdds = function (odds) {
+    if (odds != null) {
+        return odds;
+    }
+    return null;
 }

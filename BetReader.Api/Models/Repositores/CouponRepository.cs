@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using BetReader.Api.Models.Database;
 using BetReader.Model.Entities;
 
 namespace BetReader.Api.Models.Repositores
@@ -25,7 +26,7 @@ namespace BetReader.Api.Models.Repositores
             return context.Coupons.FirstOrDefault(c => c.Id == id);
         }
 
-        public void Create(Coupon entity)
+        public void Add(Coupon entity)
         {
             context.Coupons.Add(entity);
         }
